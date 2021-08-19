@@ -26,8 +26,8 @@ function TwoLayerNet(input_size, hidden_size, output_size)
     loss_layer = SoftmaxWithLoss()
 
     # すべての重みと勾配をリストにまとめる
-    params = [layer.params for layer in self.layers]
-    grads = [layer.grads for layer in self.layers]
+    params = [layer.params for layer = layers]
+    grads = [layer.grads for layer = layers]
 
     return TwoLayerNet(params, layers, grads, loss_layer)
 end
@@ -40,13 +40,13 @@ function predict(self::TwoLayerNet, x)
 end
 
 function forward(self::TwoLayerNet, x, t)
-    score = self.predict(x)
+    score = predict(self, x)
     loss = forward(self.loss_layer, score, t)
     return loss
 end
 
 function backward(self::TwoLayerNet, dout=1)
-    dout = self.loss_layer.backward(dout)
+    dout = backward(self.loss_layer, dout)
     for layer = reverse(self.layers)
         dout = backward(layer, dout)
     end

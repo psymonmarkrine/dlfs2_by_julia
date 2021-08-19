@@ -34,7 +34,7 @@ end
 
 function cross_entropy_error(y, t)
     # 教師データがone-hot-vectorの場合、正解ラベルのインデックスに変換
-    if lenth(t) == length(y)
+    if length(t) == length(y)
         t = [i[2] for i=argmax(t, dims=2)]
     end
     batch_size = size(y, 1)

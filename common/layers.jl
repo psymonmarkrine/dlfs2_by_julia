@@ -20,8 +20,8 @@ function forward(self::MatMul, x)
 end
 function backward(self::MatMul, dout)
     W = self.params[1]
-    dx = dout * W"
-    dW = self.x" * dout
+    dx = dout * W'
+    dW = self.x' * dout
     self.grads[1] = dW
     return dx
 end
@@ -44,8 +44,8 @@ end
 
 function backward(self::Affine, dout)
     W, b = self.params
-    dx = dout * W"
-    dW = self.x" * dout
+    dx = dout * W'
+    dW = self.x' * dout
     db = sum(dout, dims=1)
 
     self.grads[1] .= dW
@@ -94,12 +94,12 @@ end
 
 function backward(self::SoftmaxWithLoss, dout=1)
     batch_size = size(self.t, 1)
-
+    t = [i[2] for i=argmax(self.t, dims=2)]
     dx = copy(self.y)
-    for (i,t) = enumerate(self.t)
+    for (i,t) = enumerate(t)
         dx[i, t] -= 1
     end
-    dx *= dout
+    dx .*= dout
     dx = dx / batch_size
 
     return dx
@@ -120,7 +120,7 @@ function forward(self::Sigmoid, x)
     return out
 end
 
-function backward(self::Sigmod, dout)
+function backward(self::Sigmoid, dout)
     dx = @. dout * (1.0 - self.out) * self.out
     return dx
 end
