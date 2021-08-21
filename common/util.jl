@@ -2,17 +2,16 @@ GPU = false
 
 function preprocess(text)
     text = lowercase(text)
-    text = replace.(text, ["." => " ."])
-    words = split.(text, " ")
+    text = replace(text, "." => " .")
+    words = split(text, " ")
 
-    word_to_id = Dict()
-    id_to_word = Dict()
+    word_to_id = Dict{AbstractString, Integer}()
+    id_to_word = Dict{Integer, AbstractString}()
     for word = words
-        if !(word in word_to_id)
-            new_id = length(word_to_id)
-            word_to_id[word] = new_id
-            id_to_word[new_id] = word
+        new_id = get!(word_to_id, word) do
+            length(word_to_id) + 1
         end
+        get!(id_to_word, new_id, word)
     end
     corpus = [word_to_id[w] for w = words]
 
