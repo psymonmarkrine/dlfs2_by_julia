@@ -25,9 +25,9 @@ function cos_similarity(x, y, eps=1e-8)
     :param eps: ”0割り”防止のための微小値
     :return:
     """
-    nx = @. x / (sqrt(sum(x ^ 2)) + eps)
-    ny = @. y / (sqrt(sum(y ^ 2)) + eps)
-    return nx * ny
+    nx = x / (sqrt(sum(x .^ 2)) + eps)
+    ny = y / (sqrt(sum(y .^ 2)) + eps)
+    return nx' * ny
 end
 
 function most_similar(query, word_to_id, id_to_word, word_matrix, top=5)
@@ -67,56 +67,65 @@ function most_similar(query, word_to_id, id_to_word, word_matrix, top=5)
         end
     end
 end
-#=
-def convert_one_hot(corpus, vocab_size):
+
+
+function convert_one_hot(corpus, vocab_size)
     """one-hot表現への変換
     :param corpus: 単語IDのリスト（1次元もしくは2次元のNumPy配列）
     :param vocab_size: 語彙数
     :return: one-hot表現（2次元もしくは3次元のNumPy配列）
     """
-    N = corpus.shape[0]
+    N = size(corpus, 1)
 
-    if corpus.ndim == 1:
-        one_hot = np.zeros((N, vocab_size), dtype=np.int32)
-        for idx, word_id in enumerate(corpus):
+    if ndims(corpus) == 1
+        one_hot = zeros(Int32, (N, vocab_size))
+        for (idx, word_id) = enumerate(corpus)
             one_hot[idx, word_id] = 1
+        end
 
-    elif corpus.ndim == 2:
-        C = corpus.shape[1]
-        one_hot = np.zeros((N, C, vocab_size), dtype=np.int32)
-        for idx_0, word_ids in enumerate(corpus):
-            for idx_1, word_id in enumerate(word_ids):
+    elseif ndims(corpus) == 2
+        C = size(corpus, 2)
+        corpus = [corpus[i,:] for i=1:N]
+        one_hot = zeros(Int32, (N, C, vocab_size))
+        for (idx_0, word_ids) = enumerate(corpus)
+            for (idx_1, word_id) = enumerate(word_ids)
                 one_hot[idx_0, idx_1, word_id] = 1
-
+            end
+        end
+    end
     return one_hot
+end
 
 
-def create_co_matrix(corpus, vocab_size, window_size=1):
+function create_co_matrix(corpus, vocab_size, window_size=1)
     """共起行列の作成
     :param corpus: コーパス（単語IDのリスト）
     :param vocab_size:語彙数
     :param window_size:ウィンドウサイズ（ウィンドウサイズが1のときは、単語の左右1単語がコンテキスト）
     :return: 共起行列
     """
-    corpus_size = len(corpus)
-    co_matrix = np.zeros((vocab_size, vocab_size), dtype=np.int32)
+    corpus_size = length(corpus)
+    co_matrix = zeros(Int32, (vocab_size, vocab_size))
 
-    for idx, word_id in enumerate(corpus):
-        for i in range(1, window_size + 1):
+    for (idx, word_id) = enumerate(corpus)
+        for i = 1:window_size
             left_idx = idx - i
             right_idx = idx + i
 
-            if left_idx >= 0:
+            if left_idx >= 1
                 left_word_id = corpus[left_idx]
                 co_matrix[word_id, left_word_id] += 1
-
-            if right_idx < corpus_size:
+            end
+            if right_idx < corpus_size
                 right_word_id = corpus[right_idx]
                 co_matrix[word_id, right_word_id] += 1
-
+            end
+        end
+    end
     return co_matrix
+end
 
-
+#=
 def ppmi(C, verbose=False, eps = 1e-8):
     """PPMI（正の相互情報量）の作成
     :param C: 共起行列
