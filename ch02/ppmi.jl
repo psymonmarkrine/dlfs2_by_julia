@@ -12,6 +12,6 @@ W = ppmi(C)
 Base.show(io::IO, f::Float32) = @printf(io, "%.3f", f) # 有効桁３桁で表示
 println("covariance matrix")
 display(C)
-println("-"^50)
+println("\n", "-"^50)
 println("PPMI")
 display(W)
