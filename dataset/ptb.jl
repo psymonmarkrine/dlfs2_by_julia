@@ -23,7 +23,6 @@ function _download(file_name)
 
     println("Downloading $file_name ... ")
 
-    # headers = Dict("User-Agent" => "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0")
     Downloads.download(url_base * file_name, file_path)
     println("Done")
 end
@@ -31,36 +30,34 @@ end
 function load_vocab()
     vocab_path = joinpath(dataset_dir, vocab_file)
 
+    word_to_id = Dict{AbstractString, Integer}()
+    id_to_word = Dict{Integer, AbstractString}()
+
     if isfile(vocab_path)
-        word_to_id = Dict{AbstractString, Integer}()
-        id_to_word = Dict{Integer, AbstractString}()
-        for i = 1:1000000
+        for i = 1:10002
             try
-                id_to_word[i] = HDF5.h5read(save_file, "$i")
+                id_to_word[i] = HDF5.h5read(vocab_path, "$i")
                 word_to_id[id_to_word[i]] = i
             catch
-                println(i)
+                # println(i)
                 break
             end
         end
         return word_to_id, id_to_word
     end
 
-    word_to_id = Dict{AbstractString, Integer}()
-    id_to_word = Dict{Integer, AbstractString}()
     data_type = "train"
     file_name = key_file[data_type]
     file_path = joinpath(dataset_dir, file_name)
 
     _download(file_name)
 
-    # words = open(file_path).read().replace("\n", "<eos>").strip().split()
     words = open(file_path, "r") do f
         split(strip(replace(String(read(f)), "\n"=>"<eos>")))
     end
 
     for (i, word) = enumerate(words)
-        if !(word in values(word_to_id))
+        if !(word in keys(word_to_id))
             tmp_id = length(word_to_id) + 1
             word_to_id[word] = tmp_id
             id_to_word[tmp_id] = word
