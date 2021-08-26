@@ -71,28 +71,34 @@ function most_similar(query, word_to_id, id_to_word, word_matrix; top=5)
 end
 
 
-function convert_one_hot(corpus, vocab_size)
+function convert_one_hot(corpus::Vector{T}, vocab_size) where T
     """one-hot表現への変換
-    :param corpus: 単語IDのリスト（1次元もしくは2次元のNumPy配列）
+    :param corpus: 単語IDのリスト（1次元のNumPy配列）
     :param vocab_size: 語彙数
-    :return: one-hot表現（2次元もしくは3次元のNumPy配列）
+    :return: one-hot表現（2次元のNumPy配列）
     """
     N = size(corpus, 1)
 
-    if ndims(corpus) == 1
-        one_hot = zeros(Int32, (N, vocab_size))
-        for (idx, word_id) = enumerate(corpus)
-            one_hot[idx, word_id] = 1
-        end
+    one_hot = zeros(Int32, (N, vocab_size))
+    for (idx, word_id) = enumerate(corpus)
+        one_hot[idx, word_id] = 1
+    end
+    return one_hot
+end
 
-    elseif ndims(corpus) == 2
-        C = size(corpus, 2)
-        corpus = [corpus[i,:] for i=1:N]
-        one_hot = zeros(Int32, (N, C, vocab_size))
-        for (idx_0, word_ids) = enumerate(corpus)
-            for (idx_1, word_id) = enumerate(word_ids)
-                one_hot[idx_0, idx_1, word_id] = 1
-            end
+function convert_one_hot(corpus::Matrix{T}, vocab_size) where T
+    """one-hot表現への変換
+    :param corpus: 単語IDのリスト（2次元のNumPy配列）
+    :param vocab_size: 語彙数
+    :return: one-hot表現（3次元のNumPy配列）
+    """
+    N, C = size(corpus)
+
+    one_hot = zeros(Int32, (N, C, vocab_size))
+    for idx_0 = 1:N
+        for idx_1 = 1:C
+            word_id = corpus[idx_0, idx_1]
+            one_hot[idx_0, idx_1, word_id] = 1
         end
     end
     return one_hot
@@ -156,27 +162,30 @@ function ppmi(C; verbose=false, eps = 1e-8)
     return M
 end
 
-#=
-def create_contexts_target(corpus, window_size=1):
+
+function create_contexts_target(corpus; window_size=1)
     """コンテキストとターゲットの作成
     :param corpus: コーパス（単語IDのリスト）
     :param window_size: ウィンドウサイズ（ウィンドウサイズが1のときは、単語の左右1単語がコンテキスト）
     :return:
     """
-    target = corpus[window_size:-window_size]
-    contexts = []
+    target = corpus[(window_size+1):(end-window_size)]
+    contexts = zeros(eltype(corpus), (0, 2window_size))
 
-    for idx in range(window_size, len(corpus)-window_size):
-        cs = []
-        for t in range(-window_size, window_size + 1):
-            if t == 0:
+    for idx = (window_size+1):(length(corpus)-window_size)
+        cs = zeros(eltype(corpus), (1, 0))
+        for t = -window_size:window_size
+            if t == 0
                 continue
-            cs.append(corpus[idx + t])
-        contexts.append(cs)
+            end
+            cs = hcat(cs, corpus[idx + t])
+        end
+        contexts = vcat(contexts, cs)
+    end
+    return contexts, target
+end
 
-    return np.array(contexts), np.array(target)
-
-
+#=
 def to_cpu(x):
     import numpy
     if type(x) == numpy.ndarray:

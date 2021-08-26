@@ -18,6 +18,7 @@ function forward(self::MatMul, x)
     self.x = x
     return out
 end
+
 function backward(self::MatMul, dout)
     W = self.params[1]
     dx = dout * W'
