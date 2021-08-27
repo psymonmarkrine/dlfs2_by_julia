@@ -4,8 +4,10 @@ import Printf: @sprintf
 
 using Plots
 include("util.jl") # clip_grads
+include("python_likes.jl")
 
 GPU = false
+
 
 mutable struct Trainer
     model
@@ -28,15 +30,15 @@ function fit(self::Trainer, x, t, max_epoch=10, batch_size=32; max_grad=nothing,
     for epoch = 1:max_epoch
         # シャッフル
         idx = randperm(data_size)
-        x = x[idx, :]
-        t = t[idx, :]
+        x = getpart(x, [idx])
+        t = getpart(t, [idx])
 
         self.current_epoch += 1
         for iters = 1:max_iters
             idx_end = iters * batch_size
             idx_begin = idx_end - batch_size + 1
-            batch_x = x[idx_begin:idx_end, :]
-            batch_t = t[idx_begin:idx_end, :]
+            batch_x = getpart(x, [idx_begin:idx_end])
+            batch_t = getpart(t, [idx_begin:idx_end])
             
             # 勾配を求め、パラメータを更新
             loss = forward(model, batch_x, batch_t)
@@ -147,8 +149,8 @@ function remove_duplicate(params, grads)
     パラメータ配列中の重複する重みをひとつに集約し、
     その重みに対応する勾配を加算する
     """
-    params, grads = copy(params), copy(grads)  # copy list
-    pop_list = zeros(Integer, 0)
+    params, grads = params[:], grads[:]  # copy list
+    
     while true
         find_flg = false
         L = size(params, 1)
@@ -156,19 +158,24 @@ function remove_duplicate(params, grads)
         for i = 1:(L-1)
             for j = (i+1):L
                 # 重みを共有する場合
-                if params[i] == params[j]
+                if params[i] === params[j]
                     grads[i] .+= grads[j]  # 勾配の加算
                     find_flg = true
-                    append!(pop_list, j)
+                    popat!(params, j)
+                    popat!(grads, j)
                 # 転置行列として重みを共有する場合（weight tying）
                 elseif ndims(params[i])==2 && ndims(params[j])==2 && size(params[i])==size(params[j]) && all(params[i]' .== params[j])
                     grads[i] .+= grads[j]'
                     find_flg = true
-                    append!(pop_list, j)
+                    popat!(params, j)
+                    popat!(grads, j)
                 end
                 if find_flg
                     break
                 end
+            end
+            if find_flg
+                break
             end
         end
         if !find_flg
@@ -176,5 +183,5 @@ function remove_duplicate(params, grads)
         end
     end
 
-    return params[setdiff(1:end, pop_list), :], grads[setdiff(1:end, pop_list), :]
+    return params, grads
 end
