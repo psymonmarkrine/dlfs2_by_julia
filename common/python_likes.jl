@@ -18,4 +18,19 @@ function getpart(x::Array{T,N}, indexes) where {T,N}
     return x[[i>l ? (:) : indexes[i] for i=1:d]...]
 end
 
-
+# function getpart2(x::Array{T,N}, indexes) where {T,N}
+#     """Pythonのインデックスっぽく取り出すための関数
+#       BenchmarkToolsで計測したところ上記getpartの方が早かったので没
+#     """
+#     x = copy(x)
+#     l = length(indexes)
+#     d = ndims(x)
+#     for i=1:d
+#         if i > l || indexes[i] == :
+#             continue
+#         else
+#             x = selectdim(x, i, indexes[i])
+#         end
+#     end
+#     return x
+# end

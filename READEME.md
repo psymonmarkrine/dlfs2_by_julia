@@ -89,7 +89,7 @@
 ### 4章　word2vecの高速化
 4.1 word2vecの改良①  
 　4.1.1 Embeddingレイヤ  
-　4.1.2 Embeddingレイヤの実装  
+　4.1.2 [Embeddingレイヤの実装](./md/ch04.md#412-embeddingレイヤの実装)  
 4.2 word2vecの改良②  
 　4.2.1 中間層以降の計算の問題点  
 　4.2.2 多値分類から二値分類へ  

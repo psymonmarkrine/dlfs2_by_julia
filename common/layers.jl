@@ -191,8 +191,7 @@ Embedding(W) = Embedding([W], [zero(W)], nothing)
 function forward(self::Embedding, idx)
     W = self.params[1]
     self.idx = idx
-    out = W[idx]
-    # out = selectdim(W, 1, idx)
+    out = selectdim(W, 1, idx)
     return out
 end
 
@@ -202,8 +201,7 @@ function backward(self::Embedding, dout)
     if GPU
         np.scatter_add(dW, self.idx, dout)
     else
-        dW[self.idx] .+= dout
-        # selectdim(dW, 1, self.idx) += dout
+        selectdim(dW, 1, self.idx) .+= dout
     end
     return nothing
 end

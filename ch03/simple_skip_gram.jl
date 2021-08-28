@@ -1,5 +1,5 @@
 include("../common/layers.jl") # MatMul, SoftmaxWithLoss
-
+include("../common/python_likes.jl")
 
 mutable struct SimpleSkipGram
     in_layer
@@ -27,8 +27,12 @@ function SimpleSkipGram(vocab_size::Integer, hidden_size::Integer)
 
     # すべての重みと勾配をリストにまとめる
     layers = [in_layer, out_layer]
-    params = [layer.params for layer = layers]
-    grads  = [layer.grads  for layer = layers]
+    params = typeof(in_layer0.params)([])
+    grads  = typeof(in_layer0.grads)([])
+    for layer = layers
+        append!(params, layer.params)
+        append!(grads,  layer.grads)
+    end
     
     # メンバ変数に単語の分散表現を設定
     word_vecs = W_in
@@ -38,8 +42,8 @@ end
 function forward(self::SimpleSkipGram, contexts, target)
     h = forward(self.in_layer, target)
     s = forward(self.out_layer, h)
-    l1 = forward(self.loss_layer1, s, contexts[:, 0])
-    l2 = forward(self.loss_layer2, s, contexts[:, 1])
+    l1 = forward(self.loss_layer1, s, getpart(contexts, [:, 1]))
+    l2 = forward(self.loss_layer2, s, getpart(contexts, [:, 2]))
     loss = l1 + l2
     return loss
 end
