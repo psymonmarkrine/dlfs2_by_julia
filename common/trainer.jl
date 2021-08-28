@@ -52,7 +52,7 @@ function fit(self::Trainer, x, t, max_epoch=10, batch_size=32; max_grad=nothing,
             loss_count += 1
 
             # 評価
-            if !isnothing(eval_interval) && (iters % eval_interval) == 0
+            if !isnothing(eval_interval) && (iters % eval_interval) == 1
                 avg_loss = total_loss / loss_count
                 elapsed_time = now() - start_time
                 println("| epoch $(self.current_epoch) |  iter $iters / $max_iters | time $elapsed_time | loss $(@sprintf("%.2f", avg_loss))")
@@ -149,7 +149,7 @@ function remove_duplicate(params, grads)
     パラメータ配列中の重複する重みをひとつに集約し、
     その重みに対応する勾配を加算する
     """
-    params, grads = params[:], grads[:]  # copy list
+    params, grads = copy(params), copy(grads)  # copy list
     
     while true
         find_flg = false

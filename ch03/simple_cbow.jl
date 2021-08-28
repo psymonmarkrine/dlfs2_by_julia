@@ -54,4 +54,3 @@ function backward(self::SimpleCBOW, dout=1)
     backward(self.in_layer1, da)
     backward(self.in_layer0, da)
 end
-    

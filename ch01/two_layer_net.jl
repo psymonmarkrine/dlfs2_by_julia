@@ -26,8 +26,12 @@ function TwoLayerNet(input_size, hidden_size, output_size)
     loss_layer = SoftmaxWithLoss()
 
     # すべての重みと勾配をリストにまとめる
-    params = [layer.params for layer = layers]
-    grads = [layer.grads for layer = layers]
+    params = []
+    grads = []
+    for layer = layers
+        append!(params, layer.params)
+        append!(grads,  layer.grads)
+    end
 
     return TwoLayerNet(params, layers, grads, loss_layer)
 end

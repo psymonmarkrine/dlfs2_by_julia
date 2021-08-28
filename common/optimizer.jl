@@ -10,7 +10,7 @@ end
 """
 function update(self::SGD, params, grads)
     for i = 1:length(params)
-        params[i] .-= self.lr * grads[i]
+        @. params[i] -= self.lr * grads[i]
     end
 end
 

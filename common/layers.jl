@@ -23,7 +23,7 @@ function backward(self::MatMul, dout)
     W = self.params[1]
     dx = dout * W'
     dW = self.x' * dout
-    self.grads[1] = dW
+    self.grads[1] .= dW
     return dx
 end
 
