@@ -34,3 +34,31 @@ end
 #     end
 #     return x
 # end
+
+function choice(array::Integer; p)
+    return choice(1:array, p=p)
+end
+
+function choice(array; p)
+    array = collect(array)
+    l = min(length(array), length(p))
+    r = rand()
+    p = [sum(p[1:i]) for i=1:l]/sum(p[1:l])
+    for i=1:l
+        if p[i]>=r
+            return array[i]
+        end
+    end
+end
+
+function choice(array, size::Integer; replace=true, p)
+    if !replace
+        return 
+    end
+    return [choice(array, p=p) for _=1:size]
+end
+
+function choice(array, size::Tuple; replace=true, p) where N
+    return reshape(choice(array, *(size...), replace=replace, p=p), size)
+end
+
