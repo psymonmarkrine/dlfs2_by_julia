@@ -94,9 +94,9 @@
 　4.2.1 中間層以降の計算の問題点  
 　4.2.2 多値分類から二値分類へ  
 　4.2.3 シグモイド関数と交差エントロピー誤差  
-　4.2.4 多値分類から二値分類へ（実装編）  
+　4.2.4 [多値分類から二値分類へ（実装編）](./md/ch04.md#424-多値分類から二値分類へ（実装編）)  
 　4.2.5 Negative Sampling  
-　4.2.6 Negative Samplingのサンプリング手法  
+　4.2.6 [Negative Samplingのサンプリング手法](./md/ch04.md#426-negativesamplingのサンプリング手法)  
 　4.2.7 Negative Samplingの実装  
 4.3 改良版word2vecの学習  
 　4.3.1 CBOWモデルの実装  
