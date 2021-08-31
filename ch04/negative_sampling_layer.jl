@@ -81,43 +81,57 @@ function get_negative_sample(self::UnigramSampler, target)
     # end
     return negative_sample
 end
-#=
-class NegativeSamplingLoss:
-    def __init__(self, W, corpus, power=0.75, sample_size=5):
-        self.sample_size = sample_size
-        self.sampler = UnigramSampler(corpus, power, sample_size)
-        self.loss_layers = [SigmoidWithLoss() for _ in range(sample_size + 1)]
-        self.embed_dot_layers = [EmbeddingDot(W) for _ in range(sample_size + 1)]
 
-        self.params, self.grads = [], []
-        for layer in self.embed_dot_layers:
-            self.params += layer.params
-            self.grads += layer.grads
 
-    def forward(self, h, target):
-        batch_size = target.shape[0]
-        negative_sample = self.sampler.get_negative_sample(target)
+mutable struct NegativeSamplingLoss
+    sample_size
+    sampler
+    loss_layers
+    embed_dot_layers
+    params
+    grads
+end
 
-        # 正例のフォワード
-        score = self.embed_dot_layers[0].forward(h, target)
-        correct_label = np.ones(batch_size, dtype=np.int32)
-        loss = self.loss_layers[0].forward(score, correct_label)
+function NegativeSamplingLoss(W, corpus; power=0.75, sample_size=5)
+    sample_size = sample_size
+    sampler = UnigramSampler(corpus, power, sample_size)
+    loss_layers = [SigmoidWithLoss() for _ = 0:sample_size]
+    embed_dot_layers = [EmbeddingDot(W) for _ = 0:sample_size]
 
-        # 負例のフォワード
-        negative_label = np.zeros(batch_size, dtype=np.int32)
-        for i in range(self.sample_size):
-            negative_target = negative_sample[:, i]
-            score = self.embed_dot_layers[1 + i].forward(h, negative_target)
-            loss += self.loss_layers[1 + i].forward(score, negative_label)
+    params = typeof(embed_dot_layers[1].params)([])
+    grads  = typeof(embed_dot_layers[1].grads)([])
+    for layer = embed_dot_layers
+        append!(params, layer.params)
+        append!(grads,  layer.grads)
+    end
 
-        return loss
+    return NegativeSamplingLoss(sample_size, sampler, loss_layers, embed_dot_layers, params, grads)
+end
 
-    def backward(self, dout=1):
-        dh = 0
-        for l0, l1 in zip(self.loss_layers, self.embed_dot_layers):
-            dscore = l0.backward(dout)
-            dh += l1.backward(dscore)
+function forward(self::NegativeSamplingLoss, h, target)
+    batch_size = size(target, 1)
+    negative_sample = get_negative_sample(self.sampler, target)
 
-        return dh
+    # 正例のフォワード
+    score = forward(self.embed_dot_layers[1], h, target)
+    correct_label = ones(Int32, batch_size)
+    loss = forward(self.loss_layers[1], score, correct_label)
 
-# =#
+    # 負例のフォワード
+    negative_label = zeros(Int32, batch_size)
+    for i = 1:self.sample_size
+        negative_target = selectdim(negative_sample[:, i], 2, i)
+        score = forward(self.embed_dot_layers[1 + i], h, negative_target)
+        loss += forward(self.loss_layers[1 + i], score, negative_label)
+    end
+    return loss
+end
+
+function backward(self::NegativeSamplingLoss, dout=1)
+    dh = 0
+    for (l0, l1) = zip(self.loss_layers, self.embed_dot_layers)
+        dscore = backward(l0, dout)
+        dh += backward(l1, dscore)
+    end
+    return dh
+end

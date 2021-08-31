@@ -97,10 +97,10 @@
 　4.2.4 [多値分類から二値分類へ（実装編）](./md/ch04.md#424-多値分類から二値分類へ（実装編）)  
 　4.2.5 Negative Sampling  
 　4.2.6 [Negative Samplingのサンプリング手法](./md/ch04.md#426-negativesamplingのサンプリング手法)  
-　4.2.7 Negative Samplingの実装  
+　4.2.7 [Negative Samplingの実装](./md/ch04.md#427-negativesamplingの実装)  
 4.3 改良版word2vecの学習  
-　4.3.1 CBOWモデルの実装  
-　4.3.2 CBOWモデルの学習コード  
+　4.3.1 [CBOWモデルの実装](./md/ch04.md#431-cbowモデルの実装)  
+　4.3.2 [CBOWモデルの学習コード](./md/ch04.md#432-cbowモデルの学習コード)  
 　4.3.3 CBOWモデルの評価  
 4.4 word2vecに関する残りのテーマ  
 　4.4.1 word2vecを使ったアプリケーションの例  
