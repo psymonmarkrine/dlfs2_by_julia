@@ -33,8 +33,8 @@ optimizer = Adam()
 trainer = Trainer(model, optimizer)
 
 # 学習開始
-trainer.fit(contexts, target, max_epoch, batch_size)
-trainer.plot()
+fit(trainer, contexts, target, max_epoch, batch_size)
+plot(trainer)
 
 # 後ほど利用できるように、必要なデータを保存
 word_vecs = model.word_vecs

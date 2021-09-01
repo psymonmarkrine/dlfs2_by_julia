@@ -170,17 +170,14 @@ function create_contexts_target(corpus; window_size=1)
     :return:
     """
     target = corpus[(window_size+1):(end-window_size)]
-    contexts = zeros(eltype(corpus), (0, 2window_size))
+    contexts = zeros(eltype(corpus), (length(corpus)-2window_size, 2window_size))
 
-    for idx = (window_size+1):(length(corpus)-window_size)
-        cs = zeros(eltype(corpus), (1, 0))
-        for t = -window_size:window_size
-            if t == 0
-                continue
-            end
-            cs = hcat(cs, corpus[idx + t])
+    w = collect(-window_size:window_size)
+    popat!(w, div(length(w)+1, 2))
+    for (i, idx) = enumerate((window_size+1):(length(corpus)-window_size))
+        for (j, t) = enumerate(w)
+            contexts[i, j] = corpus[idx + t]
         end
-        contexts = vcat(contexts, cs)
     end
     return contexts, target
 end
@@ -281,44 +278,54 @@ def eval_seq2seq(model, question, correct, id_to_char,
         print("---")
 
     return 1 if guess == correct else 0
-
-
-def analogy(a, b, c, word_to_id, id_to_word, word_matrix, top=5, answer=None):
-    for word in (a, b, c):
-        if word not in word_to_id:
-            print("%s is not found" % word)
+end
+# =#
+function analogy(a, b, c, word_to_id, id_to_word, word_matrix; top=5, answer=nothing)
+    for word = (a, b, c)
+        if !(word in word_to_id)
+            print("$word is not found")
             return
+        end
+    end
 
-    print("\n[analogy] " + a + ":" + b + " = " + c + ":?")
-    a_vec, b_vec, c_vec = word_matrix[word_to_id[a]], word_matrix[word_to_id[b]], word_matrix[word_to_id[c]]
+    print("\n[analogy] $a:$b  = $c:?")
+    a_vec = selectdim(word_matrix, 1, word_to_id[a])
+    b_vec = selectdim(word_matrix, 1, word_to_id[b])
+    c_vec = selectdim(word_matrix, 1, word_to_id[c])
     query_vec = b_vec - a_vec + c_vec
     query_vec = normalize(query_vec)
 
-    similarity = np.dot(word_matrix, query_vec)
+    similarity = word_matrix * query_vec
 
-    if answer is not None:
-        print("==>" + answer + ":" + str(np.dot(word_matrix[word_to_id[answer]], query_vec)))
+    if !isnothing(answer)
+        print("==>$answer:$(selectdim(word_matrix, 1, word_to_id[answer])*query_vec)")
+    end
 
     count = 0
-    for i in (-1 * similarity).argsort():
-        if np.isnan(similarity[i]):
+    for i = sortperm(-similarity)
+        if isnan(similarity[i])
             continue
-        if id_to_word[i] in (a, b, c):
+        end
+        if id_to_word[i] in (a, b, c)
             continue
-        print(" {0}: {1}".format(id_to_word[i], similarity[i]))
+        end
+        println(" $(id_to_word[i]): $(similarity[i])")
 
         count += 1
-        if count >= top:
-            return
+        if count >= top
+            break
+        end
+    end
+end
 
-
-def normalize(x):
-    if x.ndim == 2:
-        s = np.sqrt((x * x).sum(1))
-        x /= s.reshape((s.shape[0], 1))
-    elif x.ndim == 1:
-        s = np.sqrt((x * x).sum())
+function normalize(x::Vector)
+        s = sqrt(sum(x.^2))
         x /= s
     return x
+end
 
-# =#
+function normalize(x::Matrix)
+        s = sqrt(sum(x.^2, dims=2))
+        x ./= s
+    return x
+end
