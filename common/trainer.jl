@@ -164,7 +164,7 @@ function remove_duplicate(params, grads)
                     popat!(params, j)
                     popat!(grads, j)
                 # 転置行列として重みを共有する場合（weight tying）
-                elseif ndims(params[i])==2 && ndims(params[j])==2 && size(params[i])==size(params[j]) && all(params[i]' .== params[j])
+                elseif ndims(params[i])==2 && ndims(params[j])==2 && size(params[i]')==size(params[j]) && all(params[i]' .== params[j])
                     grads[i] .+= grads[j]'
                     find_flg = true
                     popat!(params, j)
