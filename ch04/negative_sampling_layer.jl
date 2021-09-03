@@ -9,6 +9,7 @@ mutable struct EmbeddingDot
     grads
     cache
 end
+
 function EmbeddingDot(W)
     embed = Embedding(W)
     params = embed.params
@@ -28,7 +29,7 @@ function backward(self::EmbeddingDot, dout)
     h, target_W = self.cache
     dout = reshape(dout, size(dout, 1), 1)
 
-    dtarget_W = dout * h
+    dtarget_W = dout .* h
     backward(self.embed, dtarget_W)
     dh = dout .* target_W
     return dh
@@ -118,9 +119,9 @@ function forward(self::NegativeSamplingLoss, h, target)
     loss = forward(self.loss_layers[1], score, correct_label)
 
     # 負例のフォワード
-    negative_label = zeros(Int32, batch_size)
+    negative_label = ones(Int32, batch_size)
     for i = 1:self.sample_size
-        negative_target = selectdim(negative_sample[:, i], 2, i)
+        negative_target = selectdim(negative_sample, 2, i)
         score = forward(self.embed_dot_layers[1 + i], h, negative_target)
         loss += forward(self.loss_layers[1 + i], score, negative_label)
     end
@@ -128,10 +129,11 @@ function forward(self::NegativeSamplingLoss, h, target)
 end
 
 function backward(self::NegativeSamplingLoss, dout=1)
-    dh = 0
-    for (l0, l1) = zip(self.loss_layers, self.embed_dot_layers)
-        dscore = backward(l0, dout)
-        dh += backward(l1, dscore)
-    end
+    # dh = 0
+    # for (l0, l1) = zip(self.loss_layers, self.embed_dot_layers)
+    #     dscore = backward(l0, dout)
+    #     dh .+= backward(l1, dscore)
+    # end
+    dh = sum([backward(l1, backward(l0, dout)) for (l0, l1) = zip(self.loss_layers, self.embed_dot_layers)])
     return dh
 end

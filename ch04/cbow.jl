@@ -1,3 +1,5 @@
+import Statistics: mean
+
 include("../common/layers.jl") # Embedding
 include("negative_sampling_layer.jl") # NegativeSamplingLoss
 
@@ -18,7 +20,7 @@ function CBOW(vocab_size, hidden_size, window_size, corpus)
     W_out = 0.01 * randn(Float32, V, H)
 
     # レイヤの生成
-    in_layers = [Embedding(W_in) for i=1:(2*window_size)] # Embeddingレイヤを使用
+    in_layers = [Embedding(W_in) for _=1:(2*window_size)] # Embeddingレイヤを使用
 
     ns_loss = NegativeSamplingLoss(W_out, corpus, power=0.75, sample_size=5)
 
@@ -38,11 +40,7 @@ function CBOW(vocab_size, hidden_size, window_size, corpus)
 end
 
 function forward(self::CBOW, contexts, target)
-    h = 0
-    for (i, layer) = enumerate(self.in_layers)
-        h += forward(layer, selectdim(contexts, 2, i))
-    end
-    h /= length(self.in_layers)
+    h = mean([forward(layer, selectdim(contexts, 2, i)) for (i, layer) = enumerate(self.in_layers)])
     loss = forward(self.ns_loss, h, target)
     return loss
 end

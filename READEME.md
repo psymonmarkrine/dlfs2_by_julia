@@ -119,7 +119,7 @@
 　5.2.4 Truncated BPTT  
 　5.2.5 Truncated BPTTのミニバッチ学習  
 5.3 RNNの実装  
-　5.3.1 RNNレイヤの実装  
+　5.3.1 [RNNレイヤの実装](./md/ch05.md#531-rnnレイヤの実装)  
 　5.3.2 Time RNNレイヤの実装  
 5.4 時系列データを扱うレイヤの実装  
 　5.4.1 RNNLMの全体図  
