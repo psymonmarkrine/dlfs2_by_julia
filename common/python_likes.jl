@@ -39,11 +39,16 @@ function choice(num::Integer; p, with_index=false)
     return choice(1:num, p=p, with_index=with_index)
 end
 
+function choice(unitrange::UnitRange; p, with_index=false)
+    return choice(collect(unitrange), p=p, with_index=with_index)
+end
+
 function choice(array; p, with_index=false)
-    array = collect(array)
+    # array = collect(array)
     l = min(length(array), length(p))
     r = rand()
-    p = [sum(p[1:i]) for i=1:l]/sum(p[1:l])
+    p = cumsum(p[1:l])
+    p /= p[end]
     for i=1:l
         if p[i]>=r
             return with_index ? (array[i], i) : array[i]
@@ -55,19 +60,31 @@ function choice(num::Integer, size::Integer; replace=true, p)
     choice(1:num, size, replace=replace, p=p)
 end
 
+function choice(unitrange::UnitRange, size::Integer; replace=true, p)
+    return choice(collect(unitrange), size, replace=replace, p=p)
+end
+
 function choice(array, size::Integer; replace=true, p)
     if !replace
-        array = collect(array)
+        # array = collect(array)
         size = min(length(array), size)
         if size<=1
             return choice(array, p=p)
         end
         ret, idx = choice(array, p=p, with_index=true)
-        popat!(array, idx)
-        popat!(p, idx)
+        deleteat!(array, idx)
+        deleteat!(p, idx)
         return [ret, choice(array, size-1, p=p, replace=false)...]
     end
     return [choice(array, p=p) for _=1:size]
+end
+
+function choice(num::Integer, size::Tuple; replace=true, p)
+    choice(1:num, size, replace=replace, p=p)
+end
+
+function choice(unitrange::UnitRange, size::Tuple; replace=true, p)
+    return choice(collect(unitrange), size, replace=replace, p=p)
 end
 
 function choice(array, size::Tuple; replace=true, p) where N
