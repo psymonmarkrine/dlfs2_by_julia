@@ -46,7 +46,9 @@ params = Dict(
     "word_to_id" => word_to_id,
     "id_to_word" => id_to_word
 )
-h5_file = "cbow_params.h5"  # or "skipgram_params.h5"
-for (k, v) = params
-    HDF5.h5write(h5_file, k, v)
-end
+
+# HDF5.jlだとFloat16やDictに対応してない
+# h5_file = "cbow_params.h5"  # or "skipgram_params.h5"
+# for (k, v) = params
+#     HDF5.h5write(h5_file, k, v)
+# end

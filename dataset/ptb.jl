@@ -1,5 +1,5 @@
 import Downloads
-import HDF5
+import JLD2
 
 
 url_base = "https://raw.githubusercontent.com/tomsercu/lstm/master/data/"
@@ -8,8 +8,12 @@ key_file = Dict(
     "test"  => "ptb.test.txt",
     "valid" => "ptb.valid.txt"
 )
-save_file = "ptb.h5"
-vocab_file = "ptb.vocab.h5"
+save_file = Dict(
+    "train" => "ptb.train.jld2",
+    "test"  => "ptb.test.jld2",
+    "valid" => "ptb.valid.jld2"
+)
+vocab_file = "ptb.vocab.jld2"
 
 dataset_dir = dirname(abspath(@__FILE__))
 
@@ -30,22 +34,13 @@ end
 function load_vocab()
     vocab_path = joinpath(dataset_dir, vocab_file)
 
-    word_to_id = Dict{AbstractString, Integer}()
-    id_to_word = Dict{Integer, AbstractString}()
-
     if isfile(vocab_path)
-        for i = 1:10002
-            try
-                id_to_word[i] = HDF5.h5read(vocab_path, "$i")
-                word_to_id[id_to_word[i]] = i
-            catch
-                # println(i)
-                break
-            end
-        end
-        return word_to_id, id_to_word
+        d = JLD2.load(vocab_path)
+        return d["word_to_id"], d["id_to_word"]
     end
 
+    word_to_id = Dict{String, Int16}()
+    id_to_word = Dict{Int16, String}()
     data_type = "train"
     file_name = key_file[data_type]
     file_path = joinpath(dataset_dir, file_name)
@@ -53,7 +48,7 @@ function load_vocab()
     _download(file_name)
 
     words = open(file_path, "r") do f
-        split(strip(replace(String(read(f)), "\n"=>"<eos>")))
+        String.(split(strip(replace(String(read(f)), "\n"=>"<eos>"))))
     end
 
     for (i, word) = enumerate(words)
@@ -64,9 +59,7 @@ function load_vocab()
         end
     end
 
-    for (k, v) = id_to_word
-        HDF5.h5write(vocab_path, "$k", v)
-    end
+    JLD2.save(vocab_path, "id_to_word", id_to_word, "word_to_id", word_to_id)
 
     return word_to_id, id_to_word
 end
@@ -76,15 +69,13 @@ function load_data(data_type="train")
         :param data_type: データの種類："train" or "test" or "valid (val)"
         :return:
     """
-    save_path = joinpath(dataset_dir, save_file)
+    save_path = joinpath(dataset_dir, save_file[data_type])
 
     word_to_id, id_to_word = load_vocab()
 
-    try
-        corpus = HDF5.h5read(save_path, data_type)
+    if isfile(save_path)
+        corpus = JLD2.load(save_path, "corpus")
         return corpus, word_to_id, id_to_word
-    catch
-        ;
     end
 
     file_name = key_file[data_type]
@@ -92,11 +83,11 @@ function load_data(data_type="train")
     _download(file_name)
 
     words = open(file_path, "r") do f
-        split(strip(replace(String(read(f)), "\n"=>"<eos>")))
+        String.(split(strip(replace(String(read(f)), "\n"=>"<eos>"))))
     end
     corpus = [word_to_id[w] for w = words]
     
-    HDF5.h5write(save_path, data_type, corpus)
+    JLD2.save(save_path, "corpus", corpus)
     return corpus, word_to_id, id_to_word
 end
 

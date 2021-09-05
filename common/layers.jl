@@ -140,7 +140,6 @@ SigmoidWithLoss() = SigmoidWithLoss([], [], nothing, nothing, nothing)
 function forward(self::SigmoidWithLoss, x, t)
     self.t = t
     self.y = @. 1 / (1 + exp(-x))
-
     self.loss = cross_entropy_error(hcat(1 .- self.y, self.y), self.t)
 
     return self.loss
@@ -197,11 +196,11 @@ end
 
 function backward(self::Embedding, dout)
     dW = self.grads[1]
-    dW .= 0.0
+    dW[:] .= 0.0
     if GPU
         np.scatter_add(dW, self.idx, dout)
     else
         selectdim(dW, 1, self.idx) .+= dout
     end
-    return nothing
+    return dW
 end
