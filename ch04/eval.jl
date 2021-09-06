@@ -1,13 +1,13 @@
 include("../common/util.jl") # most_similar, analogy
-import HDF5
+import JLD2
 
 
-hdf_file = "cbow_params.h5"
-# hdf_file = "skipgram_params.h5"
+jld2_file = "cbow_params.jld2"
+# jld2_file = "skipgram_params.jld2"
 
-word_vecs  = HDF5.h5read(hdf_file, "word_vecs")
-word_to_id = HDF5.h5read(hdf_file, "word_to_id")
-id_to_word = HDF5.h5read(hdf_file, "id_to_word")
+word_vecs  = JLD2.load(jld2_file, "word_vecs")
+word_to_id = JLD2.load(jld2_file, "word_to_id")
+id_to_word = JLD2.load(jld2_file, "id_to_word")
 
 # most similar task
 querys = ["you", "year", "car", "toyota"]

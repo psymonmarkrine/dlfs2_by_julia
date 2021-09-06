@@ -19,8 +19,8 @@ end
 
 function forward(self::EmbeddingDot, h, idx)
     target_W = forward(self.embed, idx)
-    out = sum(target_W * h, dims=2)
-
+    out = sum(target_W .* h, dims=2)
+    
     self.cache = (h, target_W)
     return out
 end
@@ -94,7 +94,6 @@ mutable struct NegativeSamplingLoss
 end
 
 function NegativeSamplingLoss(W, corpus; power=0.75, sample_size=5)
-    sample_size = sample_size
     sampler = UnigramSampler(corpus, power, sample_size)
     loss_layers = [SigmoidWithLoss() for _ = 0:sample_size]
     embed_dot_layers = [EmbeddingDot(W) for _ = 0:sample_size]
@@ -115,7 +114,7 @@ function forward(self::NegativeSamplingLoss, h, target)
 
     # 正例のフォワード
     score = forward(self.embed_dot_layers[1], h, target)
-    correct_label = ones(Int32, batch_size)
+    correct_label = fill(Int32(2), batch_size)
     loss = forward(self.loss_layers[1], score, correct_label)
 
     # 負例のフォワード
@@ -132,7 +131,7 @@ function backward(self::NegativeSamplingLoss, dout=1)
     # dh = 0
     # for (l0, l1) = zip(self.loss_layers, self.embed_dot_layers)
     #     dscore = backward(l0, dout)
-    #     dh .+= backward(l1, dscore)
+    #     dh = dh .+ backward(l1, dscore)
     # end
     dh = sum([backward(l1, backward(l0, dout)) for (l0, l1) = zip(self.loss_layers, self.embed_dot_layers)])
     return dh

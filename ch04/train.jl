@@ -2,7 +2,7 @@
 # ===============================================
 # config.GPU = True
 # ===============================================
-import HDF5
+import JLD2
 include("../common/trainer.jl") # Trainer
 include("../common/optimizer.jl") # Adam
 include("cbow.jl") # CBOW
@@ -47,8 +47,5 @@ params = Dict(
     "id_to_word" => id_to_word
 )
 
-# HDF5.jlだとFloat16やDictに対応してない
-# h5_file = "cbow_params.h5"  # or "skipgram_params.h5"
-# for (k, v) = params
-#     HDF5.h5write(h5_file, k, v)
-# end
+jld2_file = "cbow_params.jld2"  # or "skipgram_params.jld2"
+JLD2.save(jld2_file, params)
